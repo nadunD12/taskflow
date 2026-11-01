@@ -1,7 +1,8 @@
 
 import { useEffect, useMemo, useState } from "react";
+import "./App.css";
 import {
-  BrowserRouter,
+  HashRouter,
   Routes,
   Route,
   Navigate,
@@ -24,7 +25,8 @@ import {
   Clock,
   CircleAlert,
   X,
-  Pencil
+  Pencil,
+  LogOut
 } from "lucide-react";
 
 import { useTaskStore } from "./store/taskStore";
@@ -33,7 +35,21 @@ import type { Task, TaskPriority } from "./types";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
+import Login from "./pages/Login";
+import { AuthProvider, useAuth } from "./context/AuthContext";
 
+// Protect all application pages
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Main application
 function AppContent() {
   const {
     tasks,
@@ -44,6 +60,8 @@ function AppContent() {
     deleteTask,
     updateTask
   } = useTaskStore();
+
+  const { logout } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -64,10 +82,12 @@ function AppContent() {
 
   const currentPage = location.pathname;
 
+  // Load tasks
   useEffect(() => {
     void loadTasks();
   }, [loadTasks]);
 
+  // Search and filter tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const query = search.toLowerCase();
@@ -84,6 +104,7 @@ function AppContent() {
     });
   }, [tasks, search, filter]);
 
+  // Dashboard statistics
   const completed = tasks.filter(
     (task) => task.status === "Completed"
   ).length;
@@ -105,6 +126,7 @@ function AppContent() {
           ? "My Profile"
           : "Dashboard";
 
+  // Reset task form
   function resetForm() {
     setTitle("");
     setDescription("");
@@ -115,11 +137,13 @@ function AppContent() {
     setFormError("");
   }
 
+  // Open create task form
   function handleOpenCreate() {
     resetForm();
     setShowForm(true);
   }
 
+  // Open edit task form
   function handleEditClick(task: Task) {
     setEditingTaskId(task.id);
     setTitle(task.title);
@@ -131,11 +155,13 @@ function AppContent() {
     setShowForm(true);
   }
 
+  // Close form
   function handleCloseForm() {
     setShowForm(false);
     resetForm();
   }
 
+  // Create or update task
   function handleAddTask(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
@@ -178,6 +204,7 @@ function AppContent() {
     handleCloseForm();
   }
 
+  // Delete task
   function handleDeleteTask(task: Task) {
     const confirmed = window.confirm(
       `Are you sure you want to delete "${task.title}"?`
@@ -188,6 +215,7 @@ function AppContent() {
     }
   }
 
+  // Complete or undo task
   function handleToggleComplete(task: Task) {
     updateTask(task.id, {
       status:
@@ -197,8 +225,15 @@ function AppContent() {
     });
   }
 
+  // Logout
+  function handleLogout() {
+    logout();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <div className="app-shell">
+      {/* Sidebar */}
       <aside className={`sidebar ${mobileMenu ? "sidebar-open" : ""}`}>
         <div className="brand">
           <div className="brand-icon">
@@ -210,6 +245,7 @@ function AppContent() {
           </span>
 
           <button
+            type="button"
             className="mobile-close"
             onClick={() => setMobileMenu(false)}
             aria-label="Close navigation"
@@ -279,9 +315,11 @@ function AppContent() {
         </div>
       </aside>
 
+      {/* Main content */}
       <main className="main-content">
         <header className="topbar">
           <button
+            type="button"
             className="icon-button mobile-toggle"
             onClick={() => setMobileMenu(true)}
             aria-label="Open navigation"
@@ -295,11 +333,21 @@ function AppContent() {
 
           <div className="topbar-actions">
             <button
+              type="button"
               className="icon-button"
               aria-label="Notifications"
-              type="button"
             >
               <Bell size={20} />
+            </button>
+
+            <button
+              type="button"
+              className="icon-button"
+              onClick={handleLogout}
+              aria-label="Logout"
+              title="Logout"
+            >
+              <LogOut size={20} />
             </button>
 
             <div className="avatar top-avatar">JD</div>
@@ -308,8 +356,12 @@ function AppContent() {
 
         <div className="dashboard-content">
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route
+              path="/"
+              element={<Navigate to="/dashboard" replace />}
+            />
 
+            {/* Dashboard */}
             <Route
               path="/dashboard"
               element={
@@ -328,6 +380,7 @@ function AppContent() {
                     </div>
 
                     <button
+                      type="button"
                       className="primary-button"
                       onClick={handleOpenCreate}
                     >
@@ -336,6 +389,7 @@ function AppContent() {
                     </button>
                   </section>
 
+                  {/* Statistics */}
                   <section className="stats-grid">
                     <div className="stat-card">
                       <div className="stat-top">
@@ -382,6 +436,7 @@ function AppContent() {
                     </div>
                   </section>
 
+                  {/* Recent tasks */}
                   <section className="task-section">
                     <div className="section-heading">
                       <div>
@@ -390,6 +445,7 @@ function AppContent() {
                       </div>
 
                       <button
+                        type="button"
                         className="primary-button"
                         onClick={() => navigate("/tasks")}
                       >
@@ -404,7 +460,9 @@ function AppContent() {
                           type="search"
                           placeholder="Search tasks..."
                           value={search}
-                          onChange={(event) => setSearch(event.target.value)}
+                          onChange={(event) =>
+                            setSearch(event.target.value)
+                          }
                           aria-label="Search tasks"
                         />
                       </div>
@@ -412,7 +470,9 @@ function AppContent() {
                       <select
                         className="filter-select"
                         value={filter}
-                        onChange={(event) => setFilter(event.target.value)}
+                        onChange={(event) =>
+                          setFilter(event.target.value)
+                        }
                         aria-label="Filter tasks"
                       >
                         <option value="All">All Tasks</option>
@@ -435,7 +495,9 @@ function AppContent() {
                         <CheckSquare size={34} />
                         <h3>No tasks found</h3>
                         <p>Try another search or create a new task.</p>
+
                         <button
+                          type="button"
                           className="primary-button"
                           onClick={handleOpenCreate}
                         >
@@ -457,9 +519,13 @@ function AppContent() {
                                     ? "is-complete"
                                     : ""
                                 }`}
-                                onClick={() => handleToggleComplete(task)}
+                                onClick={() =>
+                                  handleToggleComplete(task)
+                                }
                                 aria-label={`Toggle ${task.title}`}
-                                aria-pressed={task.status === "Completed"}
+                                aria-pressed={
+                                  task.status === "Completed"
+                                }
                               >
                                 {task.status === "Completed" && (
                                   <Check size={15} />
@@ -476,7 +542,9 @@ function AppContent() {
                                 >
                                   {task.title}
                                 </h3>
+
                                 <p>{task.description}</p>
+
                                 <span className="task-category">
                                   {task.category}
                                 </span>
@@ -531,6 +599,7 @@ function AppContent() {
               }
             />
 
+            {/* My Tasks */}
             <Route
               path="/tasks"
               element={
@@ -545,6 +614,7 @@ function AppContent() {
                     </div>
 
                     <button
+                      type="button"
                       className="primary-button"
                       onClick={handleOpenCreate}
                     >
@@ -558,9 +628,19 @@ function AppContent() {
               }
             />
 
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/profile" element={<Profile />} />
+            {/* Calendar */}
+            <Route
+              path="/calendar"
+              element={<Calendar />}
+            />
 
+            {/* Profile */}
+            <Route
+              path="/profile"
+              element={<Profile />}
+            />
+
+            {/* Unknown route */}
             <Route
               path="*"
               element={<Navigate to="/dashboard" replace />}
@@ -573,8 +653,12 @@ function AppContent() {
         </div>
       </main>
 
+      {/* Create and Edit Task Modal */}
       {showForm && (
-        <div className="modal-overlay" onClick={handleCloseForm}>
+        <div
+          className="modal-overlay"
+          onClick={handleCloseForm}
+        >
           <div
             className="task-modal"
             role="dialog"
@@ -587,6 +671,7 @@ function AppContent() {
                 <h2 id="modal-title">
                   {editingTaskId ? "Edit Task" : "Create New Task"}
                 </h2>
+
                 <p>
                   {editingTaskId
                     ? "Update your task details."
@@ -621,7 +706,9 @@ function AppContent() {
               <textarea
                 id="task-description"
                 value={description}
-                onChange={(event) => setDescription(event.target.value)}
+                onChange={(event) =>
+                  setDescription(event.target.value)
+                }
                 placeholder="Describe your task"
                 minLength={5}
                 maxLength={300}
@@ -635,7 +722,9 @@ function AppContent() {
                     id="task-priority"
                     value={priority}
                     onChange={(event) =>
-                      setPriority(event.target.value as TaskPriority)
+                      setPriority(
+                        event.target.value as TaskPriority
+                      )
                     }
                   >
                     <option value="Low">Low</option>
@@ -649,7 +738,9 @@ function AppContent() {
                   <select
                     id="task-category"
                     value={category}
-                    onChange={(event) => setCategory(event.target.value)}
+                    onChange={(event) =>
+                      setCategory(event.target.value)
+                    }
                   >
                     <option value="Personal">Personal</option>
                     <option value="University">University</option>
@@ -699,11 +790,28 @@ function AppContent() {
   );
 }
 
+// Application entry point
 function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <AppContent />
-    </BrowserRouter>
+    <HashRouter basename={import.meta.env.BASE_URL}>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <AppContent />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
+    </HashRouter>
   );
 }
 
