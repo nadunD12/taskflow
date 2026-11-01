@@ -1,0 +1,93 @@
+
+[
+  {
+    "id": "1",
+    "title": "Complete React Coursework",
+    "description": "Develop the TaskFlow application",
+    "priority": "High",
+    "status": "In Progress",
+    "dueDate": "2026-11-05",
+    "category": "University"
+  },
+  {
+    "id": "2",
+    "title": "Learn TypeScript",
+    "description": "Practise TypeScript interfaces",
+    "priority": "Medium",
+    "status": "Pending",
+    "dueDate": "2026-11-06",
+    "category": "Learning"
+  },
+  {
+    "id": "3",
+    "title": "Complete UI Design",
+    "description": "Design dashboard and navigation",
+    "priority": "High",
+    "status": "Completed",
+    "dueDate": "2026-11-03",
+    "category": "Design"
+  },
+  {
+    "id": "4",
+    "title": "Study React Router",
+    "description": "Understand routing and navigation",
+    "priority": "Medium",
+    "status": "Pending",
+    "dueDate": "2026-11-08",
+    "category": "Learning"
+  },
+  {
+    "id": "5",
+    "title": "Prepare Presentation",
+    "description": "Prepare university presentation",
+    "priority": "Low",
+    "status": "In Progress",
+    "dueDate": "2026-11-10",
+    "category": "University"
+  },
+  {
+    "id": "6",
+    "title": "Update Portfolio",
+    "description": "Add recent projects",
+    "priority": "Low",
+    "status": "Pending",
+    "dueDate": "2026-11-12",
+    "category": "Personal"
+  },
+  {
+    "id": "7",
+    "title": "Learn Zustand",
+    "description": "Practise global state management",
+    "priority": "High",
+    "status": "Pending",
+    "dueDate": "2026-11-07",
+    "category": "Learning"
+  },
+  {
+    "id": "8",
+    "title": "Test Application",
+    "description": "Test all application features",
+    "priority": "High",
+    "status": "Pending",
+    "dueDate": "2026-11-15",
+    "category": "Development"
+  },
+  {
+    "id": "9",
+    "title": "Complete Documentation",
+    "description": "Write project README",
+    "priority": "Medium",
+    "status": "Pending",
+    "dueDate": "2026-11-16",
+    "category": "University"
+  },
+  {
+    "id": "10",
+    "title": "Deploy Website",
+    "description": "Publish project using GitHub Pages",
+    "priority": "High",
+    "status": "Pending",
+    "dueDate": "2026-11-18",
+    "category": "Development"
+  }
+]
