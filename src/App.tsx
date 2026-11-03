@@ -2,6 +2,7 @@
 import type { ReactNode, FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import NotFound from "./pages/NotFound";
 
 import {
   HashRouter,
@@ -68,6 +69,23 @@ function AppContent() {
   } = useTaskStore();
 
   const { logout } = useAuth();
+
+  // Read the signed-in user's email saved during login.
+  const userEmail = localStorage.getItem("taskflow-user-email") ?? "";
+  const userName = userEmail
+    ? userEmail
+        .split("@")[0]
+        .split(/[._-]/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ")
+    : "TaskFlow User";
+  const userInitials = userName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("") || "TU";
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -245,6 +263,9 @@ function AppContent() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+         Skip to main content
+      </a>
       {/* Sidebar */}
       <aside
         className={`sidebar ${mobileMenu ? "sidebar-open" : ""}`}
@@ -320,18 +341,22 @@ function AppContent() {
           </NavLink>
 
           <div className="profile-mini">
-            <div className="avatar">JD</div>
+            <div className="avatar">{userInitials}</div>
 
             <div>
-              <strong>John Doe</strong>
-              <span>Personal account</span>
+              <strong>{userName}</strong>
+              <span>{userEmail || "Personal account"}</span>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="main-content">
+      <main
+         className="main-content"
+         id="main-content"
+         tabIndex={-1}
+      >
         {/* Top navigation */}
         <header className="topbar">
           <button
@@ -366,12 +391,13 @@ function AppContent() {
               <LogOut size={20} />
             </button>
 
-            <div className="avatar top-avatar">JD</div>
+            <div className="avatar top-avatar">{userInitials}</div>
           </div>
         </header>
 
         <div className="dashboard-content">
           <Routes>
+          
             {/* Default route */}
             <Route
               path="/"
@@ -389,7 +415,7 @@ function AppContent() {
                         YOUR PRODUCTIVITY SPACE
                       </p>
 
-                      <h1>Good morning, John 👋</h1>
+                      <h1>Good morning, {userName.split(" ")[0]} 👋</h1>
 
                       <p className="welcome-subtitle">
                         Here's what's happening with your tasks today.
@@ -667,10 +693,8 @@ function AppContent() {
             />
 
             {/* Unknown route */}
-            <Route
-              path="*"
-              element={<Navigate to="/dashboard" replace />}
-            />
+
+            <Route path="*" element={<NotFound />} />
           </Routes>
 
           <footer className="footer">
@@ -834,7 +858,7 @@ function AppContent() {
 // Application entry point
 function App() {
   return (
-    <HashRouter basename={import.meta.env.BASE_URL}>
+    <HashRouter>
       <AuthProvider>
         <Routes>
           <Route

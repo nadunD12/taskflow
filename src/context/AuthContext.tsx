@@ -1,3 +1,4 @@
+
 import {
   createContext,
   useContext,
@@ -14,27 +15,55 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => localStorage.getItem("taskflow-auth") === "true"
-  );
+  // Load an existing token when the application starts.
+  const [token, setToken] = useState<string | null>(() => {
+    const savedToken = localStorage.getItem("taskflow-token");
 
-  function login(email: string, password: string) {
+    if (savedToken) {
+      return savedToken;
+    }
+
+    // Migrate an existing login from the previous version.
+    if (localStorage.getItem("taskflow-auth") === "true") {
+      const migratedToken = `taskflow-demo-${Date.now()}`;
+
+      localStorage.setItem("taskflow-token", migratedToken);
+      localStorage.removeItem("taskflow-auth");
+
+      return migratedToken;
+    }
+
+    return null;
+  });
+
+  const isAuthenticated = Boolean(token);
+
+  function login(email: string, password: string): boolean {
     if (!email.trim() || !password.trim()) {
       return false;
     }
 
-    localStorage.setItem("taskflow-auth", "true");
-    setIsAuthenticated(true);
+    // Create a simulated token for this coursework demo.
+    const demoToken = `taskflow-demo-${Date.now()}`;
+
+    localStorage.setItem("taskflow-token", demoToken);
+    localStorage.setItem("taskflow-user-email", email.trim());
+    setToken(demoToken);
+
     return true;
   }
 
   function logout() {
+    localStorage.removeItem("taskflow-token");
     localStorage.removeItem("taskflow-auth");
-    setIsAuthenticated(false);
+    localStorage.removeItem("taskflow-user-email");
+    setToken(null);
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
