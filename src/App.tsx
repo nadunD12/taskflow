@@ -1,6 +1,8 @@
 
+import type { ReactNode, FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+
 import {
   HashRouter,
   Routes,
@@ -8,7 +10,7 @@ import {
   Navigate,
   NavLink,
   useLocation,
-  useNavigate
+  useNavigate,
 } from "react-router-dom";
 
 import {
@@ -26,20 +28,24 @@ import {
   CircleAlert,
   X,
   Pencil,
-  LogOut
+  LogOut,
 } from "lucide-react";
 
 import { useTaskStore } from "./store/taskStore";
 import type { Task, TaskPriority } from "./types";
 
+import StatCard from "./components/StatCard";
+import StatusBadge from "./components/StatusBadge";
+
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
+
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
-// Protect all application pages
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+// Protect application pages
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
@@ -49,7 +55,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Main application
+// Main application content
 function AppContent() {
   const {
     tasks,
@@ -58,7 +64,7 @@ function AppContent() {
     loadTasks,
     addTask,
     deleteTask,
-    updateTask
+    updateTask,
   } = useTaskStore();
 
   const { logout } = useAuth();
@@ -66,13 +72,18 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Navigation state
   const [mobileMenu, setMobileMenu] = useState(false);
+
+  // Search and filter state
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
+  // Task modal state
   const [showForm, setShowForm] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
+  // Task form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("Medium");
@@ -82,7 +93,7 @@ function AppContent() {
 
   const currentPage = location.pathname;
 
-  // Load tasks
+  // Load tasks when the application starts
   useEffect(() => {
     void loadTasks();
   }, [loadTasks]);
@@ -90,7 +101,7 @@ function AppContent() {
   // Search and filter tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      const query = search.toLowerCase();
+      const query = search.toLowerCase().trim();
 
       const matchesSearch =
         task.title.toLowerCase().includes(query) ||
@@ -117,6 +128,7 @@ function AppContent() {
     (task) => task.status === "In Progress"
   ).length;
 
+  // Page title
   const pageTitle =
     currentPage === "/tasks"
       ? "My Tasks"
@@ -155,14 +167,14 @@ function AppContent() {
     setShowForm(true);
   }
 
-  // Close form
+  // Close task form
   function handleCloseForm() {
     setShowForm(false);
     resetForm();
   }
 
   // Create or update task
-  function handleAddTask(event: React.FormEvent<HTMLFormElement>) {
+  function handleAddTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError("");
 
@@ -186,7 +198,7 @@ function AppContent() {
       description: description.trim(),
       priority,
       category,
-      dueDate
+      dueDate,
     };
 
     if (editingTaskId) {
@@ -195,7 +207,7 @@ function AppContent() {
       const newTask: Task = {
         id: crypto.randomUUID(),
         ...taskData,
-        status: "Pending"
+        status: "Pending",
       };
 
       addTask(newTask);
@@ -221,7 +233,7 @@ function AppContent() {
       status:
         task.status === "Completed"
           ? "Pending"
-          : "Completed"
+          : "Completed",
     });
   }
 
@@ -234,7 +246,9 @@ function AppContent() {
   return (
     <div className="app-shell">
       {/* Sidebar */}
-      <aside className={`sidebar ${mobileMenu ? "sidebar-open" : ""}`}>
+      <aside
+        className={`sidebar ${mobileMenu ? "sidebar-open" : ""}`}
+      >
         <div className="brand">
           <div className="brand-icon">
             <CheckSquare size={23} />
@@ -307,6 +321,7 @@ function AppContent() {
 
           <div className="profile-mini">
             <div className="avatar">JD</div>
+
             <div>
               <strong>John Doe</strong>
               <span>Personal account</span>
@@ -317,6 +332,7 @@ function AppContent() {
 
       {/* Main content */}
       <main className="main-content">
+        {/* Top navigation */}
         <header className="topbar">
           <button
             type="button"
@@ -356,6 +372,7 @@ function AppContent() {
 
         <div className="dashboard-content">
           <Routes>
+            {/* Default route */}
             <Route
               path="/"
               element={<Navigate to="/dashboard" replace />}
@@ -389,51 +406,39 @@ function AppContent() {
                     </button>
                   </section>
 
-                  {/* Statistics */}
+                  {/* Dashboard statistics */}
                   <section className="stats-grid">
-                    <div className="stat-card">
-                      <div className="stat-top">
-                        <span>Total Tasks</span>
-                        <div className="stat-icon blue">
-                          <CheckSquare size={21} />
-                        </div>
-                      </div>
-                      <h2>{tasks.length}</h2>
-                      <p>All your tasks</p>
-                    </div>
+                    <StatCard
+                      title="Total Tasks"
+                      value={tasks.length}
+                      icon={<CheckSquare size={21} />}
+                      color="blue"
+                      description="All your tasks"
+                    />
 
-                    <div className="stat-card">
-                      <div className="stat-top">
-                        <span>Completed</span>
-                        <div className="stat-icon green">
-                          <Check size={21} />
-                        </div>
-                      </div>
-                      <h2>{completed}</h2>
-                      <p>Successfully completed</p>
-                    </div>
+                    <StatCard
+                      title="Completed"
+                      value={completed}
+                      icon={<Check size={21} />}
+                      color="green"
+                      description="Successfully completed"
+                    />
 
-                    <div className="stat-card">
-                      <div className="stat-top">
-                        <span>In Progress</span>
-                        <div className="stat-icon purple">
-                          <Clock size={21} />
-                        </div>
-                      </div>
-                      <h2>{inProgress}</h2>
-                      <p>Currently working on</p>
-                    </div>
+                    <StatCard
+                      title="In Progress"
+                      value={inProgress}
+                      icon={<Clock size={21} />}
+                      color="purple"
+                      description="Currently working on"
+                    />
 
-                    <div className="stat-card">
-                      <div className="stat-top">
-                        <span>Pending</span>
-                        <div className="stat-icon orange">
-                          <CircleAlert size={21} />
-                        </div>
-                      </div>
-                      <h2>{pending}</h2>
-                      <p>Waiting to be started</p>
-                    </div>
+                    <StatCard
+                      title="Pending"
+                      value={pending}
+                      icon={<CircleAlert size={21} />}
+                      color="orange"
+                      description="Waiting to be started"
+                    />
                   </section>
 
                   {/* Recent tasks */}
@@ -441,7 +446,9 @@ function AppContent() {
                     <div className="section-heading">
                       <div>
                         <h2>Recent Tasks</h2>
-                        <p>Manage and track your daily activities.</p>
+                        <p>
+                          Manage and track your daily activities.
+                        </p>
                       </div>
 
                       <button
@@ -453,9 +460,11 @@ function AppContent() {
                       </button>
                     </div>
 
+                    {/* Search and filter */}
                     <div className="task-toolbar">
                       <div className="search-box">
                         <Search size={19} />
+
                         <input
                           type="search"
                           placeholder="Search tasks..."
@@ -482,118 +491,133 @@ function AppContent() {
                       </select>
                     </div>
 
+                    {/* Loading state */}
                     {loading && (
-                      <p className="message">Loading your tasks...</p>
+                      <p className="message">
+                        Loading your tasks...
+                      </p>
                     )}
 
+                    {/* Error state */}
                     {error && (
                       <p className="error-message">{error}</p>
                     )}
 
-                    {!loading && !error && filteredTasks.length === 0 && (
-                      <div className="empty-state">
-                        <CheckSquare size={34} />
-                        <h3>No tasks found</h3>
-                        <p>Try another search or create a new task.</p>
+                    {/* Empty state */}
+                    {!loading &&
+                      !error &&
+                      filteredTasks.length === 0 && (
+                        <div className="empty-state">
+                          <CheckSquare size={34} />
 
-                        <button
-                          type="button"
-                          className="primary-button"
-                          onClick={handleOpenCreate}
-                        >
-                          <Plus size={17} />
-                          Create Task
-                        </button>
-                      </div>
-                    )}
+                          <h3>No tasks found</h3>
 
-                    {!loading && !error && filteredTasks.length > 0 && (
-                      <div className="task-list">
-                        {filteredTasks.slice(0, 5).map((task) => (
-                          <article className="task-row" key={task.id}>
-                            <div className="task-main">
-                              <button
-                                type="button"
-                                className={`complete-button ${
-                                  task.status === "Completed"
-                                    ? "is-complete"
-                                    : ""
-                                }`}
-                                onClick={() =>
-                                  handleToggleComplete(task)
-                                }
-                                aria-label={`Toggle ${task.title}`}
-                                aria-pressed={
-                                  task.status === "Completed"
-                                }
-                              >
-                                {task.status === "Completed" && (
-                                  <Check size={15} />
-                                )}
-                              </button>
+                          <p>
+                            Try another search or create a new task.
+                          </p>
 
-                              <div className="task-details">
-                                <h3
-                                  className={
+                          <button
+                            type="button"
+                            className="primary-button"
+                            onClick={handleOpenCreate}
+                          >
+                            <Plus size={17} />
+                            Create Task
+                          </button>
+                        </div>
+                      )}
+
+                    {/* Task list */}
+                    {!loading &&
+                      !error &&
+                      filteredTasks.length > 0 && (
+                        <div className="task-list">
+                          {filteredTasks.slice(0, 5).map((task) => (
+                            <article
+                              className="task-row"
+                              key={task.id}
+                            >
+                              <div className="task-main">
+                                <button
+                                  type="button"
+                                  className={`complete-button ${
                                     task.status === "Completed"
-                                      ? "completed-title"
+                                      ? "is-complete"
                                       : ""
+                                  }`}
+                                  onClick={() =>
+                                    handleToggleComplete(task)
+                                  }
+                                  aria-label={`Toggle ${task.title}`}
+                                  aria-pressed={
+                                    task.status === "Completed"
                                   }
                                 >
-                                  {task.title}
-                                </h3>
+                                  {task.status === "Completed" && (
+                                    <Check size={15} />
+                                  )}
+                                </button>
 
-                                <p>{task.description}</p>
+                                <div className="task-details">
+                                  <h3
+                                    className={
+                                      task.status === "Completed"
+                                        ? "completed-title"
+                                        : ""
+                                    }
+                                  >
+                                    {task.title}
+                                  </h3>
 
-                                <span className="task-category">
-                                  {task.category}
-                                </span>
+                                  <p>{task.description}</p>
+
+                                  <span className="task-category">
+                                    {task.category}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
 
-                            <div className="task-meta">
-                              <span
-                                className={`priority priority-${task.priority.toLowerCase()}`}
-                              >
-                                {task.priority}
-                              </span>
+                              <div className="task-meta">
+                                <span
+                                  className={`priority priority-${task.priority.toLowerCase()}`}
+                                >
+                                  {task.priority}
+                                </span>
 
-                              <span
-                                className={`status status-${task.status
-                                  .toLowerCase()
-                                  .replace(" ", "-")}`}
-                              >
-                                {task.status}
-                              </span>
+                                <StatusBadge status={task.status} />
 
-                              <span className="task-date">
-                                {task.dueDate}
-                              </span>
+                                <span className="task-date">
+                                  {task.dueDate}
+                                </span>
 
-                              <button
-                                type="button"
-                                className="edit-button"
-                                onClick={() => handleEditClick(task)}
-                                aria-label={`Edit ${task.title}`}
-                                title="Edit task"
-                              >
-                                <Pencil size={17} />
-                              </button>
+                                <button
+                                  type="button"
+                                  className="edit-button"
+                                  onClick={() =>
+                                    handleEditClick(task)
+                                  }
+                                  aria-label={`Edit ${task.title}`}
+                                  title="Edit task"
+                                >
+                                  <Pencil size={17} />
+                                </button>
 
-                              <button
-                                type="button"
-                                className="delete-button"
-                                onClick={() => handleDeleteTask(task)}
-                                aria-label={`Delete ${task.title}`}
-                                title="Delete task"
-                              >
-                                <Trash2 size={17} />
-                              </button>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    )}
+                                <button
+                                  type="button"
+                                  className="delete-button"
+                                  onClick={() =>
+                                    handleDeleteTask(task)
+                                  }
+                                  aria-label={`Delete ${task.title}`}
+                                  title="Delete task"
+                                >
+                                  <Trash2 size={17} />
+                                </button>
+                              </div>
+                            </article>
+                          ))}
+                        </div>
+                      )}
                   </section>
                 </>
               }
@@ -607,7 +631,9 @@ function AppContent() {
                   <section className="welcome-section">
                     <div>
                       <p className="date-label">WORKSPACE</p>
+
                       <h1>My Tasks</h1>
+
                       <p className="welcome-subtitle">
                         View and manage all your tasks.
                       </p>
@@ -691,18 +717,24 @@ function AppContent() {
 
             <form onSubmit={handleAddTask}>
               <label htmlFor="task-title">Task title</label>
+
               <input
                 id="task-title"
                 type="text"
                 value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                onChange={(event) =>
+                  setTitle(event.target.value)
+                }
                 placeholder="Enter task title"
                 minLength={3}
                 maxLength={80}
                 required
               />
 
-              <label htmlFor="task-description">Description</label>
+              <label htmlFor="task-description">
+                Description
+              </label>
+
               <textarea
                 id="task-description"
                 value={description}
@@ -717,7 +749,10 @@ function AppContent() {
 
               <div className="form-row">
                 <div>
-                  <label htmlFor="task-priority">Priority</label>
+                  <label htmlFor="task-priority">
+                    Priority
+                  </label>
+
                   <select
                     id="task-priority"
                     value={priority}
@@ -734,7 +769,10 @@ function AppContent() {
                 </div>
 
                 <div>
-                  <label htmlFor="task-category">Category</label>
+                  <label htmlFor="task-category">
+                    Category
+                  </label>
+
                   <select
                     id="task-category"
                     value={category}
@@ -752,11 +790,14 @@ function AppContent() {
               </div>
 
               <label htmlFor="task-date">Due date</label>
+
               <input
                 id="task-date"
                 type="date"
                 value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
+                onChange={(event) =>
+                  setDueDate(event.target.value)
+                }
                 required
               />
 

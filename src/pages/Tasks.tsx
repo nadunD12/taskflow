@@ -1,6 +1,8 @@
 
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import StatusBadge from "../components/StatusBadge";
+import PageHeader from "../components/page-header.tsx";
 
 import {
   Search,
@@ -122,13 +124,10 @@ export default function Tasks() {
   return (
     <>
       <section className="task-section">
-        <div className="section-heading">
-          <div>
-            <h2>My Tasks</h2>
-            <p>View and manage all your tasks.</p>
-          </div>
-        </div>
-
+        <PageHeader
+  title="My Tasks"
+  description="View and manage all your tasks."
+/>
         {/* Search and Filter */}
         <div className="task-toolbar">
           <div className="search-box">
@@ -215,17 +214,7 @@ export default function Tasks() {
                     {task.priority}
                   </span>
 
-                  <span
-                    className={`status status-${task.status
-                      .toLowerCase()
-                      .replace(" ", "-")}`}
-                  >
-                    {task.status}
-                  </span>
-
-                  <span className="task-date">
-                    {task.dueDate}
-                  </span>
+                  <StatusBadge status={task.status} />
 
                   <button
                     type="button"

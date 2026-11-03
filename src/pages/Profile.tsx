@@ -1,15 +1,14 @@
 
 import { UserRound } from "lucide-react";
+import PageHeader from "../components/page-header.tsx";
 
 export default function Profile() {
   return (
     <section className="task-section">
-      <div className="section-heading">
-        <div>
-          <h2>My Profile</h2>
-          <p>Your account information.</p>
-        </div>
-      </div>
+      <PageHeader
+        title="My Profile"
+        description="Your account information."
+      />
 
       <div className="stat-card">
         <div className="stat-icon blue">

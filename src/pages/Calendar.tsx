@@ -2,6 +2,8 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { useTaskStore } from "../store/taskStore";
+import PageHeader from "../components/page-header.tsx";
+
 
 const weekdays = [
   "Monday",
@@ -94,16 +96,12 @@ export default function Calendar() {
 
   return (
     <section className="calendar-section">
-      <div className="calendar-heading">
-        <div>
-          <div className="calendar-title-icon">
-            <CalendarDays size={23} />
-          </div>
-
-          <h2>Task Calendar</h2>
-          <p>Organise and track your tasks by due date.</p>
-        </div>
-      </div>
+        <PageHeader
+          title="Task Calendar"
+          description="Organise and track your tasks by due date."
+          icon={<CalendarDays size={23} />}
+          className="calendar-heading"
+        />
 
       <div className="calendar-card">
         <div className="calendar-toolbar">
