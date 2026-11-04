@@ -2,14 +2,13 @@
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import StatusBadge from "../components/StatusBadge";
-import PageHeader from "../components/page-header.tsx";
-
+import PageHeader from "../components/page-header";
 import {
   Search,
   Pencil,
   Trash2,
   Check,
-  X
+  X,
 } from "lucide-react";
 
 import { useTaskStore } from "../store/taskStore";
@@ -19,7 +18,7 @@ export default function Tasks() {
   const {
     tasks,
     updateTask,
-    deleteTask
+    deleteTask,
   } = useTaskStore();
 
   const [search, setSearch] = useState("");
@@ -32,6 +31,7 @@ export default function Tasks() {
   const [priority, setPriority] = useState<TaskPriority>("Medium");
   const [category, setCategory] = useState("Personal");
   const [dueDate, setDueDate] = useState("");
+  const [status, setStatus] = useState<Task["status"]>("Pending");
   const [formError, setFormError] = useState("");
 
   // Search and filter
@@ -59,6 +59,7 @@ export default function Tasks() {
     setPriority(task.priority);
     setCategory(task.category);
     setDueDate(task.dueDate);
+    setStatus(task.status);
     setFormError("");
   }
 
@@ -94,7 +95,8 @@ export default function Tasks() {
       description: description.trim(),
       priority,
       category,
-      dueDate
+      dueDate,
+      status,
     });
 
     handleCloseEdit();
@@ -117,7 +119,7 @@ export default function Tasks() {
       status:
         task.status === "Completed"
           ? "Pending"
-          : "Completed"
+          : "Completed",
     });
   }
 
@@ -125,9 +127,10 @@ export default function Tasks() {
     <>
       <section className="task-section">
         <PageHeader
-  title="My Tasks"
-  description="View and manage all your tasks."
-/>
+          title="My Tasks"
+          description="View and manage all your tasks."
+        />
+
         {/* Search and Filter */}
         <div className="task-toolbar">
           <div className="search-box">
@@ -294,6 +297,21 @@ export default function Tasks() {
                 maxLength={300}
                 required
               />
+
+              {/* Task Status */}
+              <label htmlFor="edit-status">Task Status</label>
+
+              <select
+                id="edit-status"
+                value={status}
+                onChange={(event) =>
+                  setStatus(event.target.value as Task["status"])
+                }
+              >
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+              </select>
 
               <div className="form-row">
                 <div>
